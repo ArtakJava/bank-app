@@ -1,29 +1,26 @@
 package org.example;
 
-import java.sql.*;
+import org.example.menu.ClientMenu.CreateClientMenuOption;
+import org.example.menu.ClientMenu.ShowAllClientMenuOption;
+import org.example.menu.MainMenuOption;
+import org.example.menu.mainMenu.AccountMenuOption;
+import org.example.menu.mainMenu.ClientMenuOption;
+import org.example.menu.mainMenu.TransactionMenuOption;
 
 public class Application {
 
     public static void main(String[] args) {
-        System.out.println("sot");
-        try {
-            Class.forName("org.h2.Driver");
-            Connection connection = DriverManager.getConnection(
-                    "jdbc:h2:~/bank;DB_CLOSE_DELAY=-1;INIT=RUNSCRIPT FROM 'src/main/resources/init.sql'",
-                    "sa",
-                    "");
-            Statement st = null;
-            st = connection.createStatement();
-            st.execute("INSERT INTO CLIENT VALUES('89964049449','MATEVOSIAN','ARTAK','ARTUROVICH','146956565','UFA')");
-            ResultSet resultSet = st.executeQuery("SELECT * FROM Client");
-            while (resultSet.next()) {
-                System.out.println(resultSet.getString("PHONE_NUMBER") + ": " + resultSet.getString("FIRST_NAME"));
-            }
-            resultSet.close();
-            st.close();
-            connection.close();
-        } catch (ClassNotFoundException | SQLException e) {
-            throw new RuntimeException(e);
-        }
+        MainMenuOption mainMenu = new MainMenuOption(null);
+        ClientMenuOption clientMenu = new ClientMenuOption(mainMenu);
+        CreateClientMenuOption createClientMenu = new CreateClientMenuOption(clientMenu);
+        clientMenu.addMenuOption(1, createClientMenu);
+        AccountMenuOption accountMenu = new AccountMenuOption(mainMenu);
+        ShowAllClientMenuOption showAllClientMenuForAccount = new ShowAllClientMenuOption(accountMenu);
+        accountMenu.addMenuOption(1, showAllClientMenuForAccount);
+        TransactionMenuOption transactionMenu = new TransactionMenuOption(mainMenu);
+        mainMenu.addMenuOption(1, clientMenu);
+        mainMenu.addMenuOption(2, accountMenu);
+        mainMenu.addMenuOption(3, transactionMenu);
+        mainMenu.process(mainMenu);
     }
 }
