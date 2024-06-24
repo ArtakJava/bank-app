@@ -2,6 +2,7 @@ package org.example.menu.ClientMenu;
 
 import org.example.entity.Client;
 import org.example.menu.ActionMenuOption;
+import org.example.menu.ClientSelectForOpenAccountOptionMenu;
 import org.example.menu.MenuOption;
 import org.example.menu.MenuOptionManager;
 
@@ -11,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ShowAllClientMenuOption extends ActionMenuOption {
-    private Map<Long, Client> clientMap;
+    private Map<Long, ClientSelectForOpenAccountOptionMenu> clientMap;
 
     public ShowAllClientMenuOption(MenuOption root) {
         super(root, MenuOptionManager.SHOW_ALL_CLIENTS);
@@ -50,7 +51,9 @@ public class ShowAllClientMenuOption extends ActionMenuOption {
                         innForCreation,
                         addressForCreation
                         );
-                clientMap.put(result.getPhoneNumber(), result);
+                ClientSelectForOpenAccountOptionMenu clientSelectOptionMenu =
+                        new ClientSelectForOpenAccountOptionMenu(this, result.toString(), phoneNumberForCreation);
+                clientMap.put(result.getPhoneNumber(), clientSelectOptionMenu);
             }
             if (clientMap.isEmpty()) {
                 System.out.println("Клиентов не найдено!");

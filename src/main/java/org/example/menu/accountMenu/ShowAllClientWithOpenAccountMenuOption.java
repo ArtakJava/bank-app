@@ -1,12 +1,9 @@
-package org.example.menu.transactionMenu;
+package org.example.menu.accountMenu;
 
 import org.example.entity.Account;
 import org.example.entity.Client;
 import org.example.entity.Currency;
-import org.example.menu.ChangeActionMenuOption;
-import org.example.menu.ClientSelectForCloseAccountOptionMenu;
-import org.example.menu.MenuOption;
-import org.example.menu.MenuOptionManager;
+import org.example.menu.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,33 +12,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TransferFundToMenuOption extends ChangeActionMenuOption {
+public class ShowAllClientWithOpenAccountMenuOption extends ActionMenuOption {
+    private Map<Long, ClientSelectForCloseAccountOptionMenu> clientMap;
     private Map<Long, List<Account>> accountMap;
-    private long recipientPhoneNumber;
-    private long sumToSend;
 
-    public TransferFundToMenuOption(MenuOption root) {
-        super(root, MenuOptionManager.TRANSFER_FUNDS_TO);
+    public ShowAllClientWithOpenAccountMenuOption(MenuOption root) {
+        super(root, MenuOptionManager.SHOW_ALL_CLIENTS_WITH_OPEN_ACCOUNTS);
     }
 
     @Override
     public void process(MenuOption menuOption) {
-        interaction();
         boolean actionDone = action();
         if (actionDone) {
             String selectNumberInString = scan.next();
             int selectNumber = Integer.parseInt(selectNumberInString);
             ClientSelectForCloseAccountOptionMenu client = null;
             if (menuMap.containsKey(selectNumber)) {
-                Account account = (Account) menuMap.get(selectNumber);
-                account.setBalance(account.getBalance() + sumToSend);
-                try {
-                    statement.executeUpdate("UPDATE ACCOUNT SET balance = " + account.getBalance() +
-                            "where NUMBER = " + account.getNumber() + ";");
-                    System.out.println("Счет " + account + " успешно пополнен.");
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                if (menuMap.get(selectNumber) instanceof ClientSelectForCloseAccountOptionMenu) {
+                    client = (ClientSelectForCloseAccountOptionMenu) menuMap.get(selectNumber);
+                    printOptions(accountMap.get(client.getClientPhoneNumber()));
                 }
+            }
+            String selectAccountInString = scan.next();
+            int accountNumber = Integer.parseInt(selectAccountInString);
+            if (menuMap.get(accountNumber) instanceof Account) {
+                Account account = (Account) menuMap.get(accountNumber);
+                closeAccount(account);
             }
             this.selectOption(selectNumberInString);
             super.process(menuOption.getRoot());
@@ -50,15 +46,17 @@ public class TransferFundToMenuOption extends ChangeActionMenuOption {
         }
     }
 
-    @Override
-    public void interaction() {
-        System.out.println(getTitle());
-        System.out.println(MenuOptionManager.CLIENT_PHONE_NUMBER_TO);
-        String phoneNumberInString = scan.next();
-        recipientPhoneNumber = Long.parseLong(phoneNumberInString);
-        System.out.println(MenuOptionManager.SEND_SUM);
-        String sumToSendInString = scan.next();
-        sumToSend = Long.parseLong(sumToSendInString);
+    private void closeAccount(Account account) {
+        long number = account.getNumber();
+        long balance = account.getBalance();
+        boolean active = account.isActive();
+        long bik = account.getBik();
+        Currency currency = account.getCurrency();
+        try {
+            statement.executeUpdate("UPDATE ACCOUNT SET active = 'false' where NUMBER = " + account.getNumber() + ";");
+            System.out.println("Счет " + account + " закрыт.");
+        } catch (SQLException e) {
+        }
     }
 
     @Override
@@ -66,8 +64,8 @@ public class TransferFundToMenuOption extends ChangeActionMenuOption {
         ResultSet resultSet;
         try {
             resultSet = statement.executeQuery("SELECT * FROM Client c " +
-                    "inner join ACCOUNT a ON c.PHONE_NUMBER = a.CLIENT_PHONE_NUMBER " +
-                    "where a.ACTIVE = TRUE AND c.PHONE_NUMBER = " + recipientPhoneNumber);
+                    "inner join ACCOUNT a ON c.PHONE_NUMBER = a.CLIENT_PHONE_NUMBER where a.ACTIVE = TRUE");
+            clientMap = new HashMap<>();
             accountMap = new HashMap<>();
             while (resultSet.next()) {
                 String lastNameForCreation = resultSet.getString("LAST_NAME");
@@ -83,7 +81,7 @@ public class TransferFundToMenuOption extends ChangeActionMenuOption {
                         phoneNumberForCreation,
                         innForCreation,
                         addressForCreation
-                );
+                        );
                 long number = Long.parseLong(resultSet.getString("NUMBER"));
                 long balance = Long.parseLong(resultSet.getString("BALANCE"));
                 boolean active = Boolean.parseBoolean(resultSet.getString("ACTIVE"));
@@ -96,6 +94,9 @@ public class TransferFundToMenuOption extends ChangeActionMenuOption {
                         bik,
                         currency
                 );
+                ClientSelectForCloseAccountOptionMenu clientSelectOptionMenu =
+                        new ClientSelectForCloseAccountOptionMenu(this, result.toString(), phoneNumberForCreation);
+                clientMap.put(result.getPhoneNumber(), clientSelectOptionMenu);
                 List<Account> oldList;
                 if (accountMap.containsKey(result.getPhoneNumber())) {
                     oldList = accountMap.get(result.getPhoneNumber());
@@ -105,11 +106,11 @@ public class TransferFundToMenuOption extends ChangeActionMenuOption {
                 oldList.add(account);
                 accountMap.put(result.getPhoneNumber(), oldList);
             }
-            if (accountMap.isEmpty()) {
+            if (clientMap.isEmpty()) {
                 System.out.println("Клиентов не найдено!");
                 return false;
             }
-            printOptions(accountMap.get(recipientPhoneNumber));
+            printOptions(clientMap.values());
             return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
