@@ -34,7 +34,7 @@ public class CurrencyMenuOption extends MenuOption {
         try {
             menuPosition = Integer.parseInt(selectNumberInString);
         } catch (NumberFormatException e){
-            System.out.println("Неверный ввод");
+            System.out.println(MenuOptionManager.ERROR_INPUT);
         }
         selectedCurrency = (Currency) menuMap.get(menuPosition);
     }

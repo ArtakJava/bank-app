@@ -2,7 +2,7 @@ package org.example.menu.ClientMenu;
 
 import org.example.entity.Client;
 import org.example.menu.ActionMenuOption;
-import org.example.menu.ClientSelectForOpenAccountOptionMenu;
+import org.example.menu.accountMenu.ClientSelectForOpenAccountOptionMenu;
 import org.example.menu.MenuOption;
 import org.example.menu.MenuOptionManager;
 
@@ -56,7 +56,7 @@ public class ShowAllClientMenuOption extends ActionMenuOption {
                 clientMap.put(result.getPhoneNumber(), clientSelectOptionMenu);
             }
             if (clientMap.isEmpty()) {
-                System.out.println("Клиентов не найдено!");
+                System.out.println(MenuOptionManager.CLIENTS_NO_FOUND);
                 return false;
             }
             printOptions(clientMap.values());

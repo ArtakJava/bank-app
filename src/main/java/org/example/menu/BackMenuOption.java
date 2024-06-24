@@ -12,7 +12,7 @@ public class BackMenuOption extends MenuOption {
         if (root != null) {
             root.process(getRoot());
         } else {
-            System.out.println("Выход из приложения.");
+            System.out.println(MenuOptionManager.MESSAGE_TO_EXIT);
         }
     }
 }

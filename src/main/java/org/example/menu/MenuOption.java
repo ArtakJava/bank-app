@@ -27,32 +27,12 @@ public abstract class MenuOption implements MenuSelect {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public List<MenuSelect> getMenuOptions() {
-        return menuOptions;
-    }
-
-    public void setMenuOptions(List<MenuSelect> menuOptions) {
-        this.menuOptions = menuOptions;
-    }
-
-    public Map<Integer, MenuSelect> getMenuMap() {
-        return menuMap;
-    }
-
-    public void setMenuMap(Map<Integer, MenuSelect> menuMap) {
-        this.menuMap = menuMap;
-    }
-
     public void selectOption(String selectNumber) {
         int menuPosition = 0;
         try {
             menuPosition = Integer.parseInt(selectNumber);
         } catch (NumberFormatException e){
-            System.out.println("Неверный ввод");
+            System.out.println(MenuOptionManager.ERROR_INPUT);
         }
         MenuSelect selectedMenu = menuMap.getOrDefault(menuPosition, getRoot());
         if (selectedMenu instanceof MenuOption) {
@@ -68,10 +48,6 @@ public abstract class MenuOption implements MenuSelect {
 
     public void addMenuOption(int position, MenuOption menuOption) {
         menuOptions.add(position - 1, menuOption);
-    }
-
-    public void deleteMenuOption(int position) {
-        menuOptions.remove(position);
     }
 
     public void printMenu() {

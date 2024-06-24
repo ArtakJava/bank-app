@@ -27,4 +27,10 @@ public class MenuOptionManager {
     public static final String CLIENT_PHONE_NUMBER_TO = "ВВЕДИТЕ НОМЕР ТЕЛЕФОНА КЛИЕНТА ДЛЯ ЗАЧИСЛЕНИЯ:";
     public static final String CLIENT_PHONE_NUMBER_FROM = "ВВЕДИТЕ НОМЕР ТЕЛЕФОНА ОТПРАВИТЕЛЯ:";
     public static final String SEND_SUM = "ВВЕДИТЕ СУММУ ДЛЯ ПЕРЕВОДА:";
+    public static final String MESSAGE_TO_EXIT = "Выход из приложения.";
+    public static final String ERROR_INPUT = "Неверный ввод";
+    public static final String CLIENTS_NO_FOUND = "Клиентов не найдено!";
+    public static final String TRANSACTION_SUCCESS = "Транзакция успешно пополнена.";
+    public static final String CURRENCY_NOT_EQUALS = "Валюты счетов не соответствуют.";
+    public static final String NOT_HAVE_BALANCE = "Не хватает средств для перевода.";
 }

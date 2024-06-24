@@ -4,7 +4,6 @@ import org.example.entity.Account;
 import org.example.entity.Client;
 import org.example.entity.Currency;
 import org.example.menu.ChangeActionMenuOption;
-import org.example.menu.ClientSelectForCloseAccountOptionMenu;
 import org.example.menu.MenuOption;
 import org.example.menu.MenuOptionManager;
 
@@ -19,7 +18,6 @@ public class TransferFundFromToMenuOption extends ChangeActionMenuOption {
     private Map<Long, List<Account>> accountMap;
     private long senderPhoneNumber;
     private Account senderAccount;
-
     private long recipientPhoneNumber;
     private Account recipientAccount;
     private long sumToSend;
@@ -36,7 +34,9 @@ public class TransferFundFromToMenuOption extends ChangeActionMenuOption {
             String selectNumberInString = scan.next();
             int selectNumber = Integer.parseInt(selectNumberInString);
             if (menuMap.containsKey(selectNumber)) {
-                senderAccount = (Account) menuMap.get(selectNumber);
+                if (menuMap.get(selectNumber) instanceof Account) {
+                    senderAccount = (Account) menuMap.get(selectNumber);
+                }
             }
             interactionTwo();
             actionDone = actionTwo();
@@ -44,8 +44,24 @@ public class TransferFundFromToMenuOption extends ChangeActionMenuOption {
                 selectNumberInString = scan.next();
                 selectNumber = Integer.parseInt(selectNumberInString);
                 if (menuMap.containsKey(selectNumber)) {
-                    recipientAccount = (Account) menuMap.get(selectNumber);
+                    if (menuMap.get(selectNumber) instanceof Account) {
+                        recipientAccount = (Account) menuMap.get(selectNumber);
+                    }
                 }
+                startTransaction();
+            } else {
+                menuOption.getRoot().process(menuOption.getRoot());
+            }
+            this.selectOption(selectNumberInString);
+            super.process(menuOption.getRoot());
+        } else {
+            menuOption.getRoot().process(menuOption.getRoot());
+        }
+    }
+
+    private void startTransaction() {
+        if (senderAccount.getCurrency().equals(recipientAccount.getCurrency())) {
+            if (senderAccount.getBalance() >= sumToSend) {
                 senderAccount.setBalance(senderAccount.getBalance() - sumToSend);
                 recipientAccount.setBalance(recipientAccount.getBalance() + sumToSend);
                 try {
@@ -55,17 +71,15 @@ public class TransferFundFromToMenuOption extends ChangeActionMenuOption {
                     statement.executeUpdate("UPDATE ACCOUNT SET balance = " + recipientAccount.getBalance() +
                             "where NUMBER = " + recipientAccount.getNumber() + ";");
                     connection.commit();
-                    System.out.println("Транзакция успешно пополнена.");
+                    System.out.println(MenuOptionManager.TRANSACTION_SUCCESS);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                menuOption.getRoot().process(menuOption.getRoot());
+                System.out.println(MenuOptionManager.NOT_HAVE_BALANCE);
             }
-            this.selectOption(selectNumberInString);
-            super.process(menuOption.getRoot());
         } else {
-            menuOption.getRoot().process(menuOption.getRoot());
+            System.out.println(MenuOptionManager.CURRENCY_NOT_EQUALS);
         }
     }
 
@@ -94,44 +108,9 @@ public class TransferFundFromToMenuOption extends ChangeActionMenuOption {
                     "inner join ACCOUNT a ON c.PHONE_NUMBER = a.CLIENT_PHONE_NUMBER " +
                     "where a.ACTIVE = TRUE AND c.PHONE_NUMBER = " + recipientPhoneNumber);
             accountMap = new HashMap<>();
-            while (resultSet.next()) {
-                String lastNameForCreation = resultSet.getString("LAST_NAME");
-                String firstNameForCreation = resultSet.getString("FIRST_NAME");
-                String middleNameForCreation = resultSet.getString("MIDDLE_NAME");
-                long phoneNumberForCreation = resultSet.getLong("PHONE_NUMBER");
-                String innForCreation = resultSet.getString("INN");
-                String addressForCreation = resultSet.getString("ADDRESS");
-                Client result = new Client(
-                        lastNameForCreation,
-                        firstNameForCreation,
-                        middleNameForCreation,
-                        phoneNumberForCreation,
-                        innForCreation,
-                        addressForCreation
-                );
-                long number = Long.parseLong(resultSet.getString("NUMBER"));
-                long balance = Long.parseLong(resultSet.getString("BALANCE"));
-                boolean active = Boolean.parseBoolean(resultSet.getString("ACTIVE"));
-                long bik = Long.parseLong(resultSet.getString("BIK"));
-                Currency currency = Currency.valueOf(resultSet.getString("CURRENCY"));
-                Account account = new Account(
-                        number,
-                        balance,
-                        active,
-                        bik,
-                        currency
-                );
-                List<Account> oldList;
-                if (accountMap.containsKey(result.getPhoneNumber())) {
-                    oldList = accountMap.get(result.getPhoneNumber());
-                } else {
-                    oldList = new ArrayList<>();
-                }
-                oldList.add(account);
-                accountMap.put(result.getPhoneNumber(), oldList);
-            }
+            mappingEntity(resultSet);
             if (accountMap.isEmpty()) {
-                System.out.println("Клиентов не найдено!");
+                System.out.println(MenuOptionManager.CLIENTS_NO_FOUND);
                 return false;
             }
             printOptions(accountMap.get(recipientPhoneNumber));
@@ -149,50 +128,54 @@ public class TransferFundFromToMenuOption extends ChangeActionMenuOption {
                     "inner join ACCOUNT a ON c.PHONE_NUMBER = a.CLIENT_PHONE_NUMBER " +
                     "where a.ACTIVE = TRUE AND c.PHONE_NUMBER = " + senderPhoneNumber);
             accountMap = new HashMap<>();
-            while (resultSet.next()) {
-                String lastNameForCreation = resultSet.getString("LAST_NAME");
-                String firstNameForCreation = resultSet.getString("FIRST_NAME");
-                String middleNameForCreation = resultSet.getString("MIDDLE_NAME");
-                long phoneNumberForCreation = resultSet.getLong("PHONE_NUMBER");
-                String innForCreation = resultSet.getString("INN");
-                String addressForCreation = resultSet.getString("ADDRESS");
-                Client result = new Client(
-                        lastNameForCreation,
-                        firstNameForCreation,
-                        middleNameForCreation,
-                        phoneNumberForCreation,
-                        innForCreation,
-                        addressForCreation
-                );
-                long number = Long.parseLong(resultSet.getString("NUMBER"));
-                long balance = Long.parseLong(resultSet.getString("BALANCE"));
-                boolean active = Boolean.parseBoolean(resultSet.getString("ACTIVE"));
-                long bik = Long.parseLong(resultSet.getString("BIK"));
-                Currency currency = Currency.valueOf(resultSet.getString("CURRENCY"));
-                Account account = new Account(
-                        number,
-                        balance,
-                        active,
-                        bik,
-                        currency
-                );
-                List<Account> oldList;
-                if (accountMap.containsKey(result.getPhoneNumber())) {
-                    oldList = accountMap.get(result.getPhoneNumber());
-                } else {
-                    oldList = new ArrayList<>();
-                }
-                oldList.add(account);
-                accountMap.put(result.getPhoneNumber(), oldList);
-            }
+            mappingEntity(resultSet);
             if (accountMap.isEmpty()) {
-                System.out.println("Клиентов не найдено!");
+                System.out.println(MenuOptionManager.CLIENTS_NO_FOUND);
                 return false;
             }
             printOptions(accountMap.get(senderPhoneNumber));
             return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void mappingEntity(ResultSet resultSet) throws SQLException {
+        while (resultSet.next()) {
+            String lastNameForCreation = resultSet.getString("LAST_NAME");
+            String firstNameForCreation = resultSet.getString("FIRST_NAME");
+            String middleNameForCreation = resultSet.getString("MIDDLE_NAME");
+            long phoneNumberForCreation = resultSet.getLong("PHONE_NUMBER");
+            String innForCreation = resultSet.getString("INN");
+            String addressForCreation = resultSet.getString("ADDRESS");
+            Client result = new Client(
+                    lastNameForCreation,
+                    firstNameForCreation,
+                    middleNameForCreation,
+                    phoneNumberForCreation,
+                    innForCreation,
+                    addressForCreation
+            );
+            long number = Long.parseLong(resultSet.getString("NUMBER"));
+            long balance = Long.parseLong(resultSet.getString("BALANCE"));
+            boolean active = Boolean.parseBoolean(resultSet.getString("ACTIVE"));
+            long bik = Long.parseLong(resultSet.getString("BIK"));
+            Currency currency = Currency.valueOf(resultSet.getString("CURRENCY"));
+            Account account = new Account(
+                    number,
+                    balance,
+                    active,
+                    bik,
+                    currency
+            );
+            List<Account> oldList;
+            if (accountMap.containsKey(result.getPhoneNumber())) {
+                oldList = accountMap.get(result.getPhoneNumber());
+            } else {
+                oldList = new ArrayList<>();
+            }
+            oldList.add(account);
+            accountMap.put(result.getPhoneNumber(), oldList);
         }
     }
 }

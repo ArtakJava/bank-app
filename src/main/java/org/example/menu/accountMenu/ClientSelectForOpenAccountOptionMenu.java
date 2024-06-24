@@ -1,17 +1,18 @@
-package org.example.menu;
+package org.example.menu.accountMenu;
 
 import org.example.entity.Account;
 import org.example.entity.Currency;
-import org.example.menu.accountMenu.CurrencyMenuOption;
+import org.example.menu.MenuOption;
+import org.example.menu.MenuOptionManager;
 import org.example.menu.submitMenu.SubmitActionMenuOption;
 
 import java.sql.SQLException;
 
-public class ClientSelectForCloseAccountOptionMenu extends SubmitActionMenuOption {
+public class ClientSelectForOpenAccountOptionMenu extends SubmitActionMenuOption {
     private Account newAccount;
     private long clientPhoneNumber;
 
-    public ClientSelectForCloseAccountOptionMenu(MenuOption root, String title, long clientPhoneNumber) {
+    public ClientSelectForOpenAccountOptionMenu(MenuOption root, String title, long clientPhoneNumber) {
         super(root, title);
         this.clientPhoneNumber = clientPhoneNumber;
     }
@@ -26,6 +27,17 @@ public class ClientSelectForCloseAccountOptionMenu extends SubmitActionMenuOptio
 
     @Override
     public void interaction() {
+        System.out.println(getTitle());
+        System.out.println(MenuOptionManager.CREATE_ACCOUNT_NUMBER);
+        String numberInString = scan.next();
+        long number = Long.parseLong(numberInString);
+        System.out.println(MenuOptionManager.CREATE_ACCOUNT_BIK);
+        String bikInString = scan.next();
+        long bik = Long.parseLong(bikInString);
+        CurrencyMenuOption currencyMenuOption = new CurrencyMenuOption(this);
+        currencyMenuOption.process(currencyMenuOption);
+        newAccount = new Account(number, bik, currencyMenuOption.getSelectedCurrency());
+        System.out.println(newAccount);
     }
 
     @Override
@@ -48,9 +60,5 @@ public class ClientSelectForCloseAccountOptionMenu extends SubmitActionMenuOptio
         } catch (SQLException e) {
             return false;
         }
-    }
-
-    public long getClientPhoneNumber() {
-        return clientPhoneNumber;
     }
 }
